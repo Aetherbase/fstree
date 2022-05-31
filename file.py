@@ -10,10 +10,8 @@ class File(FsTreeNode):
                 self.readFs()
             elif (isinstance(content,str)):
                 self.content=content
-                self.type=FileType.TEXT
             elif(isinstance(content,bytes)):
                 self.content=content
-                self.type=FileType.BINARY
             else:
                 raise Exception("Invalid content")
         else:
@@ -21,35 +19,48 @@ class File(FsTreeNode):
 
     @staticmethod
     def from_path(path,content = None,dry=True):
-        return FsTreeNode.from_path(path,type_hint=File,content=content,dry=dry)
+        _file = FsTreeNode.from_path(path,type_hint=File,content=content,dry=dry)
+        if not isinstance(_file,File):
+            raise Exception(f"Invalid file path {path}")
+        return _file
     
-    def readFs(self,dry=None):
-        __readmode = {
-            FileType.TEXT : "r",
-            FileType.BINARY : "rb"
+    def readFs(self,dry=None) -> None:
+        __readmode : dict[FileType,tuple] = {
+            FileType.TEXT : ("r",str),
+            FileType.BINARY : ("rb",bytes),
+            FileType.NONE : ("",type(None))
         }
         if isinstance(dry,bool):
             self.dry=dry
         if (self.in_fs==True) and (self.dry==False):
-            self.type=FileType.check(self.path)
-            try:
-                self.content=open(self.path,mode=__readmode[self.type]).read()
-            except UnicodeDecodeError:
-                self.type=FileType.BINARY
-                self.readFs()
-        else:
-            if hasattr(self,"type"):
-                del self.type
-            self.content=None
-
+            if isinstance(self.content,type(None)):
+                _type=FileType.check(self.path)
+                self.content=__readmode[_type][1]()
+            if not isinstance(self.content,type(None)):
+                try:
+                    self.content=open(self.path,mode=__readmode[_type][0]).read()
+                except UnicodeDecodeError:
+                    self.content=bytes()
+                    self.readFs()
+            else:
+                self.content=None
 
     @property
     def in_fs(self):
         return(os.path.isfile(self.path))
-    
+
+    @property
+    def file_type(self):
+        __filetype_map = {
+            bytes : FileType.BINARY,
+            str : FileType.TEXT,
+            type(None) : FileType.NONE
+        }
+        return __filetype_map[type(self.content)] 
+
     @property
     def ext(self):
-        _ext = os.path.splitext(self.name)[1]
+        _ext : str = os.path.splitext(self.name)[1]
         if len(_ext)>1:
             _ext=_ext[1:]
         return _ext
@@ -65,11 +76,12 @@ class File(FsTreeNode):
     def updateFs(self):
         __writemode = {
             FileType.TEXT : "w",
-            FileType.BINARY : "wb"
+            FileType.BINARY : "wb",
+            FileType.NONE : ""
         }
         self.parent_dir.updateFs()
-        if self.dry==False:
-            with open(self.path,mode=__writemode[self.type]) as _fstream:
+        if self.dry==False and not(isinstance(self.content,type(None))):
+            with open(self.path,mode=__writemode[self.file_type]) as _fstream:
                 _fstream.write(self.content)
                 _fstream.close()
 

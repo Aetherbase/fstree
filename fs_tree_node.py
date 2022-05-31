@@ -1,5 +1,6 @@
 
 import abc
+from msilib.schema import Directory
 import os
 
 class FsTreeNode(object):
@@ -45,7 +46,7 @@ class FsTreeNode(object):
             parent_dir = Directory.NULL
         if (not isinstance(parent_dir,Directory)) and  not (self.name=="" and isinstance(self,Directory)):
             raise Exception("Invalid type for parent dir")
-        self.parent_dir = parent_dir
+        self.parent_dir : Directory = parent_dir
         if isinstance(self.parent_dir, Directory):
             if not self.parent_dir.is_same_path(Directory.NULL):
                 if self.parent_dir.dry==False:
@@ -60,6 +61,8 @@ class FsTreeNode(object):
     def get_relative_to(self,dir,**kwargs):
         from .directory import Directory
         from .file import File
+        if not isinstance(dir,Directory):
+            raise Exception("invalid dir type")
         _self_ancestors=self.ancestor_list
         _remote_parent_ancestors = dir.ancestor_list
         if len(_remote_parent_ancestors)<len(_self_ancestors):
@@ -115,7 +118,7 @@ class FsTreeNode(object):
     def ancestor_list(self):
         from .directory import Directory
         _parent=self
-        _ancestors = []
+        _ancestors : list[Directory] = []
         while(not _parent.parent_dir.is_same_path(Directory.NULL)):
             _parent=_parent.parent_dir
             _ancestors.append(_parent)

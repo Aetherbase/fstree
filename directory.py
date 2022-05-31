@@ -8,7 +8,7 @@ class Directory(FsTreeNode):
     def __init__(self, dirname: str, parent_dir , children = None,dry = False,allow_hidden=False,dry_files=True):
         super(Directory,self).__init__(dirname,parent_dir,allow_hidden)
         self.dry=dry
-        self.children=dict()
+        self.children : dict[str,Directory] = dict()
         self.dry_files=dry_files
         if self.dry!=True:
             self.readFs(dry_files=dry_files,allow_hidden=allow_hidden)
@@ -28,6 +28,10 @@ class Directory(FsTreeNode):
             FsTreeNode.from_path(fs_object,type_hint=type_hint).set_parent(self)
         else:
             raise Exception("Invalid child type")
+
+    def rem_child(self,child_name):
+        _child=self.get_child(child_name)
+        self.children.pop(_child.name)
 
     @staticmethod
     def from_path(path,children = None,dry = False,allow_hidden=False,dry_files=True):
@@ -51,6 +55,9 @@ class Directory(FsTreeNode):
         if isinstance(name,type(None)):
             name=self.name
         cp_dir=Directory(name=name,parent_dir=dir,children=self.children,allow_hidden=allow_hidden)
+        for _i in ignore:
+            _gc=cp_dir.get_grandchild(_i)
+            _gc.parent_dir.rem_child(_gc.name)
         if update_fs==True:
             cp_dir.updateFs(update_childs=True)
         return cp_dir
@@ -120,7 +127,7 @@ class Directory(FsTreeNode):
                     if not (not allow_hidden and elem.startswith(".")):
                         if os.path.isdir(os.path.join(self.path,elem)):
                             _childset.add(elem)
-                        elif os.path.isfile(os.path.join(self.dirpath,elem)):
+                        elif os.path.isfile(os.path.join(self.path,elem)):
                             _childset.add(elem)
                 for _d in _childset-set(self.children.keys()):
                     self.children[_d].deleteFs()

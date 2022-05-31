@@ -1,6 +1,8 @@
 from enum import Enum
-import chardet
+from chardet.universaldetector import UniversalDetector
+from sys import version_info
 class FileType(Enum):
+    NONE=0,
     TEXT=1,
     BINARY=2
     @staticmethod
@@ -30,23 +32,28 @@ class FileType(Enum):
             (nontext_ratio1 > 0.3 and nontext_ratio2 < 0.05) or
             (nontext_ratio1 > 0.8 and nontext_ratio2 > 0.8)
         )
-        detected_encoding = chardet.detect(bytes_to_check)
+        _bytes_str = bytes_to_check
+        if not isinstance(_bytes_str,bytearray):
+            _bytes_str=bytearray(_bytes_str)
+        with UniversalDetector() as _detector:
+            _detector : UniversalDetector
+            _detector.feed(_bytes_str)
+            detected_encoding = _detector.close()
+        del _bytes_str,_detector
         decodable_as_unicode = False
         if (detected_encoding['confidence'] > 0.9 and
                 detected_encoding['encoding'] != 'ascii'):
             try:
-                try:
+                if version_info.major>2:
                     bytes_to_check.decode(encoding=detected_encoding['encoding'])
-                except TypeError:
-                    # happens only on Python 2.6
-                    unicode(bytes_to_check, encoding=detected_encoding['encoding'])  # noqa
+                else:
+                    unicode(bytes_to_check, encoding=detected_encoding['encoding'])
                 decodable_as_unicode = True
-            except LookupError:
-                raise Exception('failure: could not look up encoding %(encoding)s',
-                             detected_encoding)
-            except UnicodeDecodeError:
-                raise Exception('failure: decodable_as_unicode: '
-                             '%(decodable_as_unicode)r', locals())
+            except: return FileType.NONE
+            # except LookupError:
+            #     raise Exception('failure: could not look up encoding %(encoding)s', detected_encoding)
+            # except UnicodeDecodeError:
+            #     raise Exception('failure: decodable_as_unicode: ''%(decodable_as_unicode)r', locals())
 
         if is_likely_binary:
             if decodable_as_unicode:
