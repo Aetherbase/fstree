@@ -29,6 +29,20 @@ class Directory(FsTreeNode):
     def from_path(path,children = None,dry = False,allow_hidden=False,dry_files=True):
         return(FsTreeNode.from_path(path,type_hint=Directory,children=children,dry=dry,allow_hidden=allow_hidden,dry_files=dry_files))
     
+    def get_grandchild(self,relative_path,type_hint=None):
+        if isinstance(relative_path,str):
+            relative_path = FsTreeNode.from_path(relative_path,type_hint=type_hint)
+        if not isinstance(relative_path,FsTreeNode):
+            raise Exception("invalid path type")
+        if relative_path.is_absolute:
+            raise Exception("the path should be relative to fetch a grandchild")
+        _relative_ancestors = relative_path.ancestor_list
+        if len(_relative_ancestors)==0:
+            return self.get_child(relative_path.name)
+        highest_parent : Directory = _relative_ancestors.pop()
+        new_relative_path = relative_path.get_relative_to(highest_parent)
+        return self.get_child(highest_parent.name).get_grandchild(new_relative_path,type_hint=type_hint)
+
     def copyTo(self,dir,name=None, update_fs=False,allow_hidden=False,ignore = []):
         if type(name)==type(None):
             name=self.name
