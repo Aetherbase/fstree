@@ -6,12 +6,12 @@ class File(FsTreeNode):
         super(File,self).__init__(filename,parent_dir)
         self.dry=dry
         if dry==False:
-            if (type(content)==type(None)) :
+            if (isinstance(content,type(None))):
                 self.readFs()
-            elif (type(content)==str):
+            elif (isinstance(content,str)):
                 self.content=content
                 self.type=FileType.TEXT
-            elif(type(content)==bytes):
+            elif(isinstance(content,bytes)):
                 self.content=content
                 self.type=FileType.BINARY
             else:
@@ -28,7 +28,7 @@ class File(FsTreeNode):
             FileType.TEXT : "r",
             FileType.BINARY : "rb"
         }
-        if type(dry)==bool:
+        if isinstance(dry,bool):
             self.dry=dry
         if (self.in_fs==True) and (self.dry==False):
             self.type=FileType.check(self.path)
@@ -55,7 +55,7 @@ class File(FsTreeNode):
         return _ext
 
     def copyTo(self, dir,name=None, update_fs=False):
-        if type(name)==type(None):
+        if isinstance(name,type(None)):
             name=self.name
         cp_f = File(name,dir,content=self.content,dry=self.dry)
         if update_fs==True:

@@ -12,15 +12,19 @@ class Directory(FsTreeNode):
         self.dry_files=dry_files
         if self.dry!=True:
             self.readFs(dry_files=dry_files,allow_hidden=allow_hidden)
-            if type(children)==Iterable:
+            if isinstance(children,Iterable):
                 self.children.clear()
-                for _child in children:
-                    self.add_child(_child)
+                if isinstance(children,dict):
+                    for _child in children.values():
+                        self.add_child(_child)
+                else:
+                    for _child in children:
+                        self.add_child(_child)
 
     def add_child(self,fs_object,type_hint = None):
         if isinstance(fs_object,FsTreeNode):
             fs_object.set_parent(self)
-        elif type(fs_object)==str:
+        elif isinstance(fs_object,str):
             FsTreeNode.from_path(fs_object,type_hint=type_hint).set_parent(self)
         else:
             raise Exception("Invalid child type")
@@ -44,7 +48,7 @@ class Directory(FsTreeNode):
         return self.get_child(highest_parent.name).get_grandchild(new_relative_path,type_hint=type_hint)
 
     def copyTo(self,dir,name=None, update_fs=False,allow_hidden=False,ignore = []):
-        if type(name)==type(None):
+        if isinstance(name,type(None)):
             name=self.name
         cp_dir=Directory(name=name,parent_dir=dir,children=self.children,allow_hidden=allow_hidden)
         if update_fs==True:
@@ -57,14 +61,14 @@ class Directory(FsTreeNode):
     def list_files(self):
         file_list=[]
         for _child in self.children.values():
-            if type(_child)==File:
+            if isinstance(_child,File):
                 file_list.append(_child.name)
         return file_list
 
     def list_dirs(self):
         dir_list=[]
         for _child in self.children.values():
-            if type(_child)==Directory:
+            if isinstance(_child,Directory):
                 dir_list.append(_child.name)
         return dir_list
 
@@ -83,7 +87,7 @@ class Directory(FsTreeNode):
         return(os.path.isdir(self.path))
 
     def readFs(self,allow_hidden=False,dry=None,dry_files=True):
-        if type(dry)==bool:
+        if isinstance(dry,bool):
             self.dry=dry
         if (self.dry!=True) and (self.in_fs==True):
                 self.children.clear()
@@ -98,15 +102,15 @@ class Directory(FsTreeNode):
             self.children.clear()
 
     def updateFs(self,update_children = False,allow_hidden=False):
-        if type(self.parent_dir)!=type(None):
+        if not isinstance(self.parent_dir,type(None)):
             self.parent_dir.updateFs()
         if (not self.in_fs) :
             os.mkdir(self.path)
             if (not self.dry) and update_children:
                 for _child in self.children.values():
-                    if(type(_child)==File):
+                    if(isinstance(_child,File)):
                         _child.updateFs()
-                    elif(type(_child)==Directory):
+                    elif(isinstance(_child,Directory)):
                         _child.updateFs(update_children)
         else:
             if (not self.dry) and update_children:
@@ -121,9 +125,9 @@ class Directory(FsTreeNode):
                 for _d in _childset-set(self.children.keys()):
                     self.children[_d].deleteFs()
                 for _child in self.children.values():
-                    if(type(_child)==File):
+                    if(isinstance(_child,File)):
                         _child.updateFs()
-                    elif(type(_child)==Directory):
+                    elif(isinstance(_child,Directory)):
                         _child.updateFs(update_children)
 
     def deleteFs(self):
