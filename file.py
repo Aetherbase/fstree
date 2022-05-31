@@ -2,7 +2,7 @@ from .filetype import FileType
 from .fs_tree_node import FsTreeNode
 import os
 class File(FsTreeNode):
-    def __init__(self, filename : str, parent_dir , dry=True, content = None):
+    def __init__(self, filename : str, parent_dir , dry=False, content = None):
         super(File,self).__init__(filename,parent_dir)
         self.dry=dry
         if dry==False:
@@ -18,7 +18,7 @@ class File(FsTreeNode):
             self.content = None
 
     @staticmethod
-    def from_path(path,content = None,dry=True):
+    def from_path(path,content = None,dry=False):
         _file = FsTreeNode.from_path(path,type_hint=File,content=content,dry=dry)
         if not isinstance(_file,File):
             raise Exception(f"Invalid file path {path}")

@@ -79,7 +79,7 @@ class Directory(FsTreeNode):
                 dir_list.append(_child.name)
         return dir_list
 
-    def get_child(self,child_name :str):
+    def get_child(self,child_name :str) ->FsTreeNode:
         if self.dry:
             raise Exception("Cannot fetch children from dry directory")
         if child_name in self.children.keys():
