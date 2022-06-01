@@ -1,6 +1,5 @@
 
 import abc
-from msilib.schema import Directory
 import os
 
 class FsTreeNode(object):
@@ -25,7 +24,8 @@ class FsTreeNode(object):
                 type_hint=Directory
             elif os.path.isfile(path):
                 type_hint=File
-        if issubclass(type_hint,FsTreeNode):
+
+        if isinstance(type_hint,type) and issubclass(type_hint,FsTreeNode):
             basename = os.path.basename(path)
             dirname = os.path.dirname(path)
             if len(basename)==0:
