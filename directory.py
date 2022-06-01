@@ -51,15 +51,24 @@ class Directory(FsTreeNode):
         new_relative_path = relative_path.get_relative_to(highest_parent)
         return self.get_child(highest_parent.name).get_grandchild(new_relative_path,type_hint=type_hint)
 
-    def copyTo(self,dir,name=None, update_fs=False,allow_hidden=False,ignore = []):
+    def copyTo(self,dir,name=None, update_fs=False,allow_hidden=False,ignore_files = [],ignore_dirs = []):
         if isinstance(name,type(None)):
             name=self.name
-        cp_dir=Directory(name=name,parent_dir=dir,children=self.children,allow_hidden=allow_hidden)
-        for _i in ignore:
-            _gc=cp_dir.get_grandchild(_i)
+        cp_dir=Directory(name,dir,children=self.children,allow_hidden=allow_hidden)
+        for _i in ignore_files:
+            try: 
+                _gc=cp_dir.get_grandchild(_i,type_hint=File)
             _gc.parent_dir.rem_child(_gc.name)
+            except:
+                pass
+        for _i in ignore_dirs:
+            try:
+                _gc=cp_dir.get_grandchild(_i,type_hint=Directory)
+                _gc.parent_dir.rem_child(_gc.name)
+            except:
+                pass
         if update_fs==True:
-            cp_dir.updateFs(update_childs=True)
+            cp_dir.updateFs(update_children=True)
         return cp_dir
     
     def list_children(self):
