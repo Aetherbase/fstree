@@ -5,7 +5,7 @@ from .file import File
 class Directory(FsTreeNode):
     ROOT = None
     NULL = None
-    def __init__(self, dirname: str, parent_dir , children = None,dry = False,allow_hidden=False,dry_files=True):
+    def __init__(self, dirname: str, parent_dir , children = None,dry = False,allow_hidden=False,dry_files=False):
         super(Directory,self).__init__(dirname,parent_dir,allow_hidden)
         self.dry=dry
         self.children : dict[str,Directory] = dict()
@@ -34,7 +34,7 @@ class Directory(FsTreeNode):
         self.children.pop(_child.name)
 
     @staticmethod
-    def from_path(path,children = None,dry = False,allow_hidden=False,dry_files=True):
+    def from_path(path,children = None,dry = False,allow_hidden=False,dry_files=False):
         return(FsTreeNode.from_path(path,type_hint=Directory,children=children,dry=dry,allow_hidden=allow_hidden,dry_files=dry_files))
     
     def get_grandchild(self,relative_path,type_hint=None):
@@ -58,7 +58,7 @@ class Directory(FsTreeNode):
         for _i in ignore_files:
             try: 
                 _gc=cp_dir.get_grandchild(_i,type_hint=File)
-            _gc.parent_dir.rem_child(_gc.name)
+                _gc.parent_dir.rem_child(_gc.name)
             except:
                 pass
         for _i in ignore_dirs:

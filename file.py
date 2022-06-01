@@ -5,6 +5,7 @@ class File(FsTreeNode):
     def __init__(self, filename : str, parent_dir , dry=False, content = None):
         super(File,self).__init__(filename,parent_dir)
         self.dry=dry
+        self.content=None
         if dry==False:
             if (isinstance(content,type(None))):
                 self.readFs()
@@ -14,8 +15,6 @@ class File(FsTreeNode):
                 self.content=content
             else:
                 raise Exception("Invalid content")
-        else:
-            self.content = None
 
     @staticmethod
     def from_path(path,content = None,dry=False):
