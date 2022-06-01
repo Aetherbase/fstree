@@ -122,7 +122,7 @@ class Directory(FsTreeNode):
     def updateFs(self,update_children = False,allow_hidden=False):
         if not isinstance(self.parent_dir,type(None)):
             self.parent_dir.updateFs()
-        if (not self.in_fs) :
+        if (not self.in_fs) and (not self.is_same_path(Directory.NULL)):
             os.mkdir(self.path)
             if (not self.dry) and update_children:
                 for _child in self.children.values():
@@ -132,14 +132,7 @@ class Directory(FsTreeNode):
                         _child.updateFs(update_children)
         else:
             if (not self.dry) and update_children:
-                _childset=set()
-                listdir = os.listdir(self.path)
-                for elem in listdir:
-                    if not (not allow_hidden and elem.startswith(".")):
-                        if os.path.isdir(os.path.join(self.path,elem)):
-                            _childset.add(elem)
-                        elif os.path.isfile(os.path.join(self.path,elem)):
-                            _childset.add(elem)
+                _childset=set(self.readFs(return_children=True,dry_files=True))
                 for _d in _childset-set(self.children.keys()):
                     self.children[_d].deleteFs()
                 for _child in self.children.values():
