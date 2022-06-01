@@ -33,12 +33,12 @@ class File(FsTreeNode):
         if isinstance(dry,bool):
             self.dry=dry
         if (self.in_fs==True) and (self.dry==False):
+            _type=FileType.check(self.path)
             if isinstance(self.content,type(None)):
-                _type=FileType.check(self.path)
                 self.content=__readmode[_type][1]()
             if not isinstance(self.content,type(None)):
                 try:
-                    self.content=open(self.path,mode=__readmode[_type][0]).read()
+                    self.content=open(self.path,mode=__readmode[self.file_type][0]).read()
                 except UnicodeDecodeError:
                     self.content=bytes()
                     self.readFs()
