@@ -35,10 +35,9 @@ class FileType(Enum):
         _bytes_str = bytes_to_check
         if not isinstance(_bytes_str,bytearray):
             _bytes_str=bytearray(_bytes_str)
-        with UniversalDetector() as _detector:
-            _detector : UniversalDetector
-            _detector.feed(_bytes_str)
-            detected_encoding = _detector.close()
+        _detector : UniversalDetector = UniversalDetector()
+        _detector.feed(_bytes_str)
+        detected_encoding = _detector.close()
         del _bytes_str,_detector
         decodable_as_unicode = False
         if (detected_encoding['confidence'] > 0.9 and
