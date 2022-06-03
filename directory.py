@@ -102,22 +102,26 @@ class Directory(FsTreeNode):
     def in_fs(self):
         return(os.path.isdir(self.path))
 
-    def readFs(self,allow_hidden=False,dry=None,dry_files=False,return_children=False):
+    def readFs(self,allow_hidden=False,dry=None,dry_files=False,update_obj=True):
         if isinstance(dry,bool):
             self.dry=dry
+        _children=self.children
+        _parent=self
+        if update_obj == False:
         _children=dict()
+            _parent = Directory.NULL
+        else:
+            _children.clear()
         if (self.dry!=True) and (self.in_fs==True):
                 listdir = os.listdir(self.path)
                 for elem in listdir:
                     elem_path=os.path.join(self.path,elem)
                     if os.path.isfile(elem_path) and not (not allow_hidden and elem.startswith(".")):
-                        _children[elem]=File(elem,self,dry=dry_files)
+                    _children[elem]=File(elem,_parent,dry=dry_files)
                     if os.path.isdir(elem_path) and not (not allow_hidden and elem.startswith(".")):
-                        _children[elem]=Directory(elem,self,allow_hidden=allow_hidden,dry_files=dry_files)
-        if return_children==True:
+                    _children[elem]=Directory(elem,_parent,allow_hidden=allow_hidden,dry_files=dry_files)
             return _children
-        else:
-            self.children=_children
+        
 
     def updateFs(self,update_children = False,allow_hidden=False):
         if self.is_same_path(Directory.NULL):
