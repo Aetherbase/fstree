@@ -29,10 +29,11 @@ class Directory(FsTreeNode):
         else:
             raise Exception("Invalid child type")
 
-    def rem_child(self,child_name):
+    def rem_child(self,child_name,update_fs=False):
         _child=self.get_child(child_name)
+        if update_fs==True:
+            _child.deleteFs()
         self.children.pop(_child.name)
-
     @staticmethod
     def from_path(path,children = None,dry = False,allow_hidden=False,dry_files=False):
         return(FsTreeNode.from_path(path,type_hint=Directory,children=children,dry=dry,allow_hidden=allow_hidden,dry_files=dry_files))
