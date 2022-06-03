@@ -120,21 +120,19 @@ class Directory(FsTreeNode):
             self.children=_children
 
     def updateFs(self,update_children = False,allow_hidden=False):
-        if not isinstance(self.parent_dir,type(None)):
+        if self.is_same_path(Directory.NULL):
+            return
             self.parent_dir.updateFs()
-        if (not self.in_fs) and (not self.is_same_path(Directory.NULL)):
+        if (not self.dry):
+            if (not self.in_fs) :
             os.mkdir(self.path)
-            if (not self.dry) and update_children:
-                for _child in self.children.values():
-                    if(isinstance(_child,File)):
-                        _child.updateFs()
-                    elif(isinstance(_child,Directory)):
-                        _child.updateFs(update_children)
-        else:
-            if (not self.dry) and update_children:
-                _childset=set(self.readFs(return_children=True,dry_files=True))
-                for _d in _childset-set(self.children.keys()):
-                    self.children[_d].deleteFs()
+            if not update_children:
+                return
+            fs_children=self.readFs(update_obj=False,dry_files=True)
+            fs_childset = set(fs_children.keys())
+            for del_child_name in fs_childset-set(self.children.keys()):
+                self.add_child(del_child_name)
+                self.rem_child(del_child_name,update_fs=True)
                 for _child in self.children.values():
                     if(isinstance(_child,File)):
                         _child.updateFs()
